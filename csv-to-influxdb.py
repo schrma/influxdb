@@ -44,38 +44,6 @@ def isinteger(value):
         except:
             return False
             
-class InfluxHandler:
-    def __init__(self,servername,user,password,dbname):
-        host = servername[0:servername.rfind(':')] 
-        port = int(servername[servername.rfind(':')+1:])
-        self.client = InfluxDBClient(host, port, user, password, dbname)
- 
-    def delete_database(self,dbname):
-        self.client.drop_database(dbname)
-    
-    def read_database(self,serie,timeinterval):
-        query_string = "SELECT * FROM {} WHERE {}".format(serie,timeinterval)
-        result = self.client.query(query_string)
-        if result.error:
-            raise RuntimeError('query failed')
-        all_values = list(result.get_points(measurement=serie))
-        return all_values
-
-
-    def write_database_for_lat_lon(self, inputdata,measurement_name):
-        datapoints=[]
-        for single_value in inputdata:
-            string_value = single_value["value"].split(',')
-            fields={"lat": float(string_value[0]), "lon" : float(string_value[1])}
-            point = {"measurement": measurement_name, "time": single_value["time"], "fields": fields}
-            datapoints.append(point)
-        response = self.client.write_points(datapoints)
-        if not response:
-            print('Problem inserting points, exiting...')
-            exit(1)
-
-        print("Wrote %d, response: %s" % (len(datapoints), response))
-        
 def loadCsv(inputfilename, servername, user, password, dbname, metric, 
     timecolumn, timeformat, tagcolumns, fieldcolumns, usegzip, 
     delimiter, batchsize, create, datatimezone):
